@@ -17,13 +17,23 @@ export function DraftBoard() {
       const roundPicks = [];
       const isEvenRound = round % 2 === 0;
       
+      // Always create picks in team order (1 to leagueSize)
       for (let team = 1; team <= leagueSize; team++) {
-        const teamIndex = isEvenRound ? leagueSize - team + 1 : team;
-        const pickNumber = (round - 1) * leagueSize + team;
+        // Calculate which pick number this team gets in this round
+        let pickNumber;
+        if (isEvenRound) {
+          // Even rounds: Team 1 picks last (position 10), Team 10 picks first (position 1)
+          const position = leagueSize - team + 1;
+          pickNumber = (round - 1) * leagueSize + position;
+        } else {
+          // Odd rounds: Team 1 picks first (position 1), Team 10 picks last (position 10)
+          pickNumber = (round - 1) * leagueSize + team;
+        }
+        
         const draftedPlayer = players.find(p => p.draftPick === pickNumber);
         
         roundPicks.push({
-          team: teamIndex,
+          team,
           round,
           pickNumber,
           player: draftedPlayer,
