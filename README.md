@@ -2,8 +2,6 @@
 
 A sophisticated Value Based Drafting (VBD) tool for fantasy football that provides AI-powered recommendations, real-time analysis, and strategic insights to dominate your draft.
 
-![Draft Board Screenshot](https://github.com/gigglestick90/fantasy-football-vbd/blob/main/Images/Current_Iteration_Draft_Board.png?raw=true)
-
 ## 🏈 Features
 
 ### Smart Draft Recommendations
@@ -122,14 +120,6 @@ The AI considers multiple factors:
 - **Zustand** - State management
 - **Recharts** - Data visualization
 - **Lucide React** - Icons
-
-## 📱 Screenshots
-
-### Player Rankings
-![Player Rankings](https://github.com/gigglestick90/fantasy-football-vbd/blob/main/Images/Current_Iteration_Player_Rankings.png?raw=true)
-
-### Team Rosters & Analytics
-![Rosters View](https://github.com/gigglestick90/fantasy-football-vbd/blob/main/Images/Current_Iteration_Rosters.png?raw=true)
 
 ## 🤝 Contributing
 
