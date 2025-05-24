@@ -1,4 +1,3 @@
-import { useDraftStore } from '../../store';
 import type { Player } from '../../types';
 
 interface PlayerQueueProps {

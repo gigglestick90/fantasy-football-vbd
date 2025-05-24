@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useDraftStore } from '../../store';
-import type { Player, Position } from '../../types';
+import { getPlayerRecommendations } from '../../utils/recommendations';
+import { Crown } from 'lucide-react';
+import type { Position } from '../../types';
 
 interface PlayerSelectModalProps {
   isOpen: boolean;
@@ -10,7 +12,7 @@ interface PlayerSelectModalProps {
 }
 
 export function PlayerSelectModal({ isOpen, onClose, pickNumber, teamId }: PlayerSelectModalProps) {
-  const { players, draftPlayer } = useDraftStore();
+  const { players, draftPlayer, getAvailablePlayers, getTeamRoster, userTeamId, currentPick, leagueSize, draftStrategy } = useDraftStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPosition, setSelectedPosition] = useState<Position | 'ALL'>('ALL');
   
@@ -22,6 +24,19 @@ export function PlayerSelectModal({ isOpen, onClose, pickNumber, teamId }: Playe
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                  p.team.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => b.vbdScore - a.vbdScore);
+    
+  // Get recommendations for the current user
+  const recommendations = teamId === userTeamId 
+    ? getPlayerRecommendations(
+        getAvailablePlayers(),
+        getTeamRoster(userTeamId),
+        currentPick,
+        leagueSize,
+        draftStrategy
+      )
+    : [];
+    
+  const recommendedPlayerIds = new Set(recommendations.map(rec => rec.player.id));
 
   const handleDraftPlayer = (playerId: string) => {
     draftPlayer(playerId, teamId, pickNumber);
@@ -86,28 +101,47 @@ export function PlayerSelectModal({ isOpen, onClose, pickNumber, teamId }: Playe
               </tr>
             </thead>
             <tbody>
-              {availablePlayers.map((player, index) => (
-                <tr key={player.id} className="border-b border-draft-border hover:bg-draft-bg">
-                  <td className="py-3 text-gray-400">{index + 1}</td>
-                  <td className="py-3 text-white font-medium">{player.name}</td>
-                  <td className="py-3 text-gray-300">{player.team}</td>
-                  <td className="py-3">
-                    <span className={`${getPositionColor(player.position)} text-white px-2 py-1 rounded text-sm`}>
-                      {player.position}
-                    </span>
-                  </td>
-                  <td className="py-3 text-white">{player.projectedPoints.toFixed(1)}</td>
-                  <td className="py-3 text-white font-semibold">{player.vbdScore.toFixed(1)}</td>
-                  <td className="py-3">
-                    <button
-                      onClick={() => handleDraftPlayer(player.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-1.5 rounded transition-colors text-sm font-medium"
-                    >
-                      Draft
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {availablePlayers.map((player, index) => {
+                const isRecommended = recommendedPlayerIds.has(player.id);
+                const recommendationRank = recommendations.findIndex(rec => rec.player.id === player.id) + 1;
+                
+                return (
+                  <tr key={player.id} className={`border-b border-draft-border hover:bg-draft-bg ${isRecommended ? 'bg-yellow-500/10' : ''}`}>
+                    <td className="py-3 text-gray-400">{index + 1}</td>
+                    <td className="py-3 text-white font-medium">
+                      <div className="flex items-center gap-2">
+                        {isRecommended && (
+                          <div className="flex items-center gap-1">
+                            <Crown className="w-4 h-4 text-yellow-500" />
+                            <span className="text-yellow-500 text-xs font-bold">#{recommendationRank}</span>
+                          </div>
+                        )}
+                        {player.name}
+                      </div>
+                    </td>
+                    <td className="py-3 text-gray-300">{player.team}</td>
+                    <td className="py-3">
+                      <span className={`${getPositionColor(player.position)} text-white px-2 py-1 rounded text-sm`}>
+                        {player.position}
+                      </span>
+                    </td>
+                    <td className="py-3 text-white">{player.projectedPoints.toFixed(1)}</td>
+                    <td className="py-3 text-white font-semibold">{player.vbdScore.toFixed(1)}</td>
+                    <td className="py-3">
+                      <button
+                        onClick={() => handleDraftPlayer(player.id)}
+                        className={`${
+                          isRecommended 
+                            ? 'bg-yellow-600 hover:bg-yellow-700' 
+                            : 'bg-blue-600 hover:bg-blue-700'
+                        } text-white px-6 py-1.5 rounded transition-colors text-sm font-medium`}
+                      >
+                        {isRecommended && recommendationRank === 1 ? 'Best Pick' : 'Draft'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -4,7 +4,7 @@ import type { Player } from '../../types';
 import { PlayerSelectModal } from '../PlayerCard/PlayerSelectModal';
 
 export function DraftBoard() {
-  const { leagueSize, players, currentPick, draftPlayer, getCurrentRound } = useDraftStore();
+  const { leagueSize, players, currentPick, getCurrentRound } = useDraftStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPick, setSelectedPick] = useState<{ pickNumber: number; teamId: number } | null>(null);
   const totalRounds = 17; // Superflex draft rounds

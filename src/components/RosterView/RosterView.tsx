@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useDraftStore } from '../../store';
+import { TeamNeeds } from '../TeamNeeds';
+import { VBDGrade } from '../VBDGrade';
+import { TeamCharts } from '../TeamCharts';
 import type { Player } from '../../types';
 
 export function RosterView() {
@@ -8,15 +11,6 @@ export function RosterView() {
   
   const teamRoster = getTeamRoster(selectedTeam);
   
-  const getPositionColor = (position: Player['position']) => {
-    switch (position) {
-      case 'QB': return 'bg-position-qb';
-      case 'RB': return 'bg-position-rb';
-      case 'WR': return 'bg-position-wr';
-      case 'TE': return 'bg-position-te';
-      default: return 'bg-gray-500';
-    }
-  };
 
   const getPositionOrder = (position: Player['position']) => {
     const order = { QB: 1, RB: 2, WR: 3, TE: 4 };
@@ -112,52 +106,66 @@ export function RosterView() {
   );
 
   return (
-    <div className="bg-draft-card rounded-lg p-6 max-w-2xl">
-      <div className="mb-6">
-        <h2 className="text-white text-2xl font-bold mb-4">RESULTS</h2>
-        
-        <div className="flex items-center gap-4 mb-6">
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(Number(e.target.value))}
-            className="bg-draft-bg text-white px-4 py-2 rounded-lg border border-draft-border text-lg font-medium"
-          >
-            {Array.from({ length: leagueSize }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                Team {i + 1}
-              </option>
-            ))}
-          </select>
+    <div className="flex gap-6">
+      {/* Left Column - Roster */}
+      <div className="bg-draft-card rounded-lg p-6 max-w-2xl">
+        <div className="mb-6">
+          <h2 className="text-white text-2xl font-bold mb-4">RESULTS</h2>
+          
+          <div className="flex items-center gap-4 mb-6">
+            <select
+              value={selectedTeam}
+              onChange={(e) => setSelectedTeam(Number(e.target.value))}
+              className="bg-draft-bg text-white px-4 py-2 rounded-lg border border-draft-border text-lg font-medium"
+            >
+              {Array.from({ length: leagueSize }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  Team {i + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <RosterSlot label="QB" player={rosterSlots.QB} slot="QB" />
+          <RosterSlot label="RB" player={rosterSlots.RB1} slot="RB" />
+          <RosterSlot label="RB" player={rosterSlots.RB2} slot="RB" />
+          <RosterSlot label="WR" player={rosterSlots.WR1} slot="WR" />
+          <RosterSlot label="WR" player={rosterSlots.WR2} slot="WR" />
+          <RosterSlot label="TE" player={rosterSlots.TE} slot="TE" />
+          <RosterSlot label="W/R/T" player={rosterSlots.FLEX1} slot="FLEX" />
+          <RosterSlot label="W/R/T" player={rosterSlots.FLEX2} slot="FLEX" />
+          <RosterSlot label="W/R/T" player={rosterSlots.FLEX3} slot="FLEX" />
+          <RosterSlot label="W/R/T/Q" player={rosterSlots.SUPERFLEX} slot="SUPERFLEX" />
+          
+          {/* K and DEF slots */}
+          <RosterSlot label="K" player={undefined} slot="K" />
+          <RosterSlot label="DEF" player={undefined} slot="DEF" />
+          
+          {/* Bench */}
+          <div className="mt-4 pt-4 border-t border-draft-border">
+            <h3 className="text-gray-400 text-sm font-medium mb-2">BENCH</h3>
+            {benchPlayers.length > 0 ? (
+              benchPlayers.map((player) => (
+                <RosterSlot key={player.id} label="BN" player={player} slot={player.position} />
+              ))
+            ) : (
+              <div className="text-gray-500 text-center py-4">No bench players drafted</div>
+            )}
+          </div>
         </div>
       </div>
-
-      <div className="space-y-2">
-        <RosterSlot label="QB" player={rosterSlots.QB} slot="QB" />
-        <RosterSlot label="RB" player={rosterSlots.RB1} slot="RB" />
-        <RosterSlot label="RB" player={rosterSlots.RB2} slot="RB" />
-        <RosterSlot label="WR" player={rosterSlots.WR1} slot="WR" />
-        <RosterSlot label="WR" player={rosterSlots.WR2} slot="WR" />
-        <RosterSlot label="TE" player={rosterSlots.TE} slot="TE" />
-        <RosterSlot label="W/R/T" player={rosterSlots.FLEX1} slot="FLEX" />
-        <RosterSlot label="W/R/T" player={rosterSlots.FLEX2} slot="FLEX" />
-        <RosterSlot label="W/R/T" player={rosterSlots.FLEX3} slot="FLEX" />
-        <RosterSlot label="W/R/T/Q" player={rosterSlots.SUPERFLEX} slot="SUPERFLEX" />
-        
-        {/* K and DEF slots */}
-        <RosterSlot label="K" player={undefined} slot="K" />
-        <RosterSlot label="DEF" player={undefined} slot="DEF" />
-        
-        {/* Bench */}
-        <div className="mt-4 pt-4 border-t border-draft-border">
-          <h3 className="text-gray-400 text-sm font-medium mb-2">BENCH</h3>
-          {benchPlayers.length > 0 ? (
-            benchPlayers.map((player, index) => (
-              <RosterSlot key={player.id} label="BN" player={player} slot={player.position} />
-            ))
-          ) : (
-            <div className="text-gray-500 text-center py-4">No bench players drafted</div>
-          )}
-        </div>
+      
+      {/* Middle Column - Team Needs & VBD Grade */}
+      <div className="w-96 space-y-6">
+        <TeamNeeds roster={teamRoster} />
+        <VBDGrade roster={teamRoster} />
+      </div>
+      
+      {/* Right Column - Charts */}
+      <div className="w-96">
+        <TeamCharts roster={teamRoster} />
       </div>
     </div>
   );

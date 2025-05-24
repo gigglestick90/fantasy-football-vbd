@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useDraftStore } from '../../store';
 import { PlayerQueue } from '../PlayerCard/PlayerQueue';
+import { Recommendations } from '../Recommendations';
+import { isPlayerRecommended } from '../../utils/recommendations';
 import type { Player } from '../../types';
 
 export function Sidebar() {
-  const { players, currentPick, getCurrentRound, isUserPick, leagueSize, userTeamId } = useDraftStore();
+  const { players, currentPick, getCurrentRound, isUserPick, leagueSize, userTeamId, getTeamRoster, getAvailablePlayers, draftStrategy } = useDraftStore();
   const [playerQueue, setPlayerQueue] = useState<Player[]>([]);
   
   const topAvailable = players
@@ -37,6 +39,11 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* AI Recommendations */}
+      <div className="mb-4">
+        <Recommendations />
+      </div>
+
       {/* Player Queue - Compact */}
       <div className="mb-4">
         <PlayerQueue 
@@ -67,30 +74,48 @@ export function Sidebar() {
       <div className="flex-1 overflow-hidden flex flex-col">
         <h3 className="text-white font-semibold mb-2 text-sm">Top Available (VBD)</h3>
         <div className="flex-1 overflow-y-auto subtle-scrollbar space-y-1">
-          {topAvailable.map((player, index) => (
-            <div 
-              key={player.id} 
-              className="flex items-center justify-between bg-draft-bg rounded p-2 hover:bg-gray-700 cursor-pointer transition-colors text-xs"
-              onClick={() => {
-                if (!playerQueue.find(p => p.id === player.id)) {
-                  setPlayerQueue(prev => [...prev, player]);
-                }
-              }}
-              title="Click to add to queue"
-            >
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-400 w-4">{index + 1}.</span>
-                <div>
-                  <div className="text-white font-medium">{player.name}</div>
-                  <div className="text-gray-400">{player.team} - {player.position}</div>
+          {topAvailable.map((player, index) => {
+            const isRecommended = isPlayerRecommended(
+              player.id,
+              getAvailablePlayers(),
+              getTeamRoster(userTeamId),
+              currentPick,
+              leagueSize,
+              draftStrategy
+            );
+            
+            return (
+              <div 
+                key={player.id} 
+                className={`flex items-center justify-between bg-draft-bg rounded p-2 hover:bg-gray-700 cursor-pointer transition-colors text-xs relative ${
+                  isRecommended ? 'ring-2 ring-yellow-500/50' : ''
+                }`}
+                onClick={() => {
+                  if (!playerQueue.find(p => p.id === player.id)) {
+                    setPlayerQueue(prev => [...prev, player]);
+                  }
+                }}
+                title="Click to add to queue"
+              >
+                {isRecommended && (
+                  <div className="absolute -top-1 -left-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <span className="text-black text-xs font-bold">★</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-400 w-4">{index + 1}.</span>
+                  <div>
+                    <div className="text-white font-medium">{player.name}</div>
+                    <div className="text-gray-400">{player.team} - {player.position}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-white font-semibold">{player.vbdScore.toFixed(1)}</div>
+                  <div className="text-gray-400">{player.projectedPoints.toFixed(1)} pts</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-white font-semibold">{player.vbdScore.toFixed(1)}</div>
-                <div className="text-gray-400">{player.projectedPoints.toFixed(1)} pts</div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

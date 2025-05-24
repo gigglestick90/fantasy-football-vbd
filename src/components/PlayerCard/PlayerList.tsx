@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useDraftStore } from '../../store';
+import { isPlayerRecommended } from '../../utils/recommendations';
 import type { Position } from '../../types';
 
 export function PlayerList() {
-  const { players, getAvailablePlayers } = useDraftStore();
+  const { players, getAvailablePlayers, userTeamId, getTeamRoster, currentPick, leagueSize, draftStrategy } = useDraftStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPosition, setSelectedPosition] = useState<Position | 'ALL'>('ALL');
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(true);
@@ -72,29 +73,45 @@ export function PlayerList() {
             </tr>
           </thead>
           <tbody>
-            {filteredPlayers.slice(0, 50).map((player, index) => (
-              <tr key={player.id} className="border-b border-draft-border hover:bg-draft-bg">
-                <td className="py-2 text-gray-400">{index + 1}</td>
-                <td className="py-2 text-white font-medium">{player.name}</td>
-                <td className="py-2 text-gray-300">{player.team}</td>
-                <td className="py-2">
-                  <span className={`${getPositionColor(player.position)} text-white px-2 py-0.5 rounded text-xs`}>
-                    {player.position}
-                  </span>
-                </td>
-                <td className="py-2 text-white">{player.projectedPoints.toFixed(1)}</td>
-                <td className="py-2 text-white font-semibold">{player.vbdScore.toFixed(1)}</td>
-                <td className="py-2">
-                  {player.isDrafted ? (
-                    <span className="text-red-400 text-xs">
-                      Team {player.draftedBy} (#{player.draftPick})
+            {filteredPlayers.slice(0, 50).map((player, index) => {
+              const isRecommended = !player.isDrafted && isPlayerRecommended(
+                player.id,
+                getAvailablePlayers(),
+                getTeamRoster(userTeamId),
+                currentPick,
+                leagueSize,
+                draftStrategy
+              );
+              
+              return (
+                <tr key={player.id} className={`border-b border-draft-border hover:bg-draft-bg ${isRecommended ? 'bg-yellow-500/10' : ''}`}>
+                  <td className="py-2 text-gray-400">{index + 1}</td>
+                  <td className="py-2 text-white font-medium flex items-center gap-2">
+                    {isRecommended && (
+                      <span className="text-yellow-500 text-xs font-bold">★</span>
+                    )}
+                    {player.name}
+                  </td>
+                  <td className="py-2 text-gray-300">{player.team}</td>
+                  <td className="py-2">
+                    <span className={`${getPositionColor(player.position)} text-white px-2 py-0.5 rounded text-xs`}>
+                      {player.position}
                     </span>
-                  ) : (
-                    <span className="text-green-400 text-xs">Available</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="py-2 text-white">{player.projectedPoints.toFixed(1)}</td>
+                  <td className="py-2 text-white font-semibold">{player.vbdScore.toFixed(1)}</td>
+                  <td className="py-2">
+                    {player.isDrafted ? (
+                      <span className="text-red-400 text-xs">
+                        Team {player.draftedBy} (#{player.draftPick})
+                      </span>
+                    ) : (
+                      <span className="text-green-400 text-xs">Available</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

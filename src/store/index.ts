@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Player, DraftSettings, Position } from '../types';
+import type { Player, DraftStrategy } from '../types';
 import { calculateAllVBD } from '../utils/vbd';
 
 interface DraftState {
@@ -11,9 +11,12 @@ interface DraftState {
   leagueSize: 10 | 12;
   currentPick: number;
   userTeamId: number;
+  draftStrategy: DraftStrategy;
   
   // Actions
   setLeagueSize: (size: 10 | 12) => void;
+  setUserTeamId: (teamId: number) => void;
+  setDraftStrategy: (strategy: DraftStrategy) => void;
   draftPlayer: (playerId: string, teamId: number, pickNumber: number) => void;
   undraftPlayer: (playerId: string) => void;
   
@@ -31,6 +34,7 @@ export const useDraftStore = create<DraftState>((set, get) => ({
   leagueSize: 10,
   currentPick: 1,
   userTeamId: 1,
+  draftStrategy: 'balanced',
   
   // Player management
   setPlayers: (players) => {
@@ -47,6 +51,14 @@ export const useDraftStore = create<DraftState>((set, get) => ({
       const playersWithVBD = calculateAllVBD(players, size);
       set({ players: playersWithVBD });
     }
+  },
+  
+  setUserTeamId: (teamId) => {
+    set({ userTeamId: teamId });
+  },
+  
+  setDraftStrategy: (strategy) => {
+    set({ draftStrategy: strategy });
   },
   
   // Draft actions

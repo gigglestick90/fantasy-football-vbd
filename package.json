@@ -16,10 +16,12 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "autoprefixer": "^10.4.21",
     "lodash": "^4.17.21",
+    "lucide-react": "^0.511.0",
     "papaparse": "^5.5.3",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "recharts": "^2.15.3",
     "tailwindcss": "^3.4.17",
     "zustand": "^5.0.5"
   },

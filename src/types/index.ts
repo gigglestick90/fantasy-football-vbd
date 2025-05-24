@@ -1,5 +1,14 @@
 export type Position = 'QB' | 'RB' | 'WR' | 'TE';
 
+export type DraftStrategy = 
+  | 'balanced'
+  | 'qb-heavy'
+  | 'hero-rb'
+  | 'zero-rb'
+  | 'hero-wr'
+  | 'zero-wr'
+  | 'vbd-only';
+
 export interface PassingStats {
   completions: number;
   attempts: number;

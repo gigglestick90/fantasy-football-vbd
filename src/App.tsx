@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useDraftStore } from './store';
 import { parsePlayersFromCSV } from './utils/dataParser';
-import { DraftBoard } from './components/DraftBoard';
 import { Sidebar } from './components/Sidebar';
-import { PlayerList } from './components/PlayerCard/PlayerList';
-import { RosterView } from './components/RosterView';
 import * as Tabs from '@radix-ui/react-tabs';
+import type { DraftStrategy } from './types';
+
+// Lazy load heavy components
+const DraftBoard = lazy(() => import('./components/DraftBoard').then(m => ({ default: m.DraftBoard })));
+const PlayerList = lazy(() => import('./components/PlayerCard/PlayerList').then(m => ({ default: m.PlayerList })));
+const RosterView = lazy(() => import('./components/RosterView').then(m => ({ default: m.RosterView })));
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const { setPlayers, leagueSize, setLeagueSize } = useDraftStore();
+  const { setPlayers, leagueSize, setLeagueSize, userTeamId, setUserTeamId, draftStrategy, setDraftStrategy } = useDraftStore();
 
   useEffect(() => {
     const loadPlayers = async () => {
@@ -40,16 +43,48 @@ function App() {
       <div className="bg-draft-bg border-b border-draft-border px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h1 className="text-white text-lg font-bold">Fantasy Football VBD Draft Assistant</h1>
-          <div className="flex items-center space-x-3">
-            <label className="text-white text-sm">League Size:</label>
-            <select 
-              value={leagueSize} 
-              onChange={(e) => setLeagueSize(Number(e.target.value) as 10 | 12)}
-              className="bg-draft-card text-white border border-draft-border rounded px-3 py-1 text-sm"
-            >
-              <option value={10}>10 Teams</option>
-              <option value={12}>12 Teams</option>
-            </select>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3">
+              <label className="text-white text-sm">League Size:</label>
+              <select 
+                value={leagueSize} 
+                onChange={(e) => setLeagueSize(Number(e.target.value) as 10 | 12)}
+                className="bg-draft-card text-white border border-draft-border rounded px-3 py-1 text-sm"
+              >
+                <option value={10}>10 Teams</option>
+                <option value={12}>12 Teams</option>
+              </select>
+            </div>
+            <div className="flex items-center space-x-3">
+              <label className="text-white text-sm">Draft Spot:</label>
+              <select 
+                value={userTeamId} 
+                onChange={(e) => setUserTeamId(Number(e.target.value))}
+                className="bg-draft-card text-white border border-draft-border rounded px-3 py-1 text-sm"
+              >
+                {Array.from({ length: leagueSize }, (_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1}{i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center space-x-3">
+              <label className="text-white text-sm">Strategy:</label>
+              <select 
+                value={draftStrategy} 
+                onChange={(e) => setDraftStrategy(e.target.value as DraftStrategy)}
+                className="bg-draft-card text-white border border-draft-border rounded px-3 py-1 text-sm"
+              >
+                <option value="balanced">Balanced</option>
+                <option value="qb-heavy">QB Heavy</option>
+                <option value="hero-rb">Hero RB (1 RB)</option>
+                <option value="zero-rb">Zero RB (0 RB)</option>
+                <option value="hero-wr">Hero WR (1 WR)</option>
+                <option value="zero-wr">Zero WR (0 WR)</option>
+                <option value="vbd-only">VBD Only</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -81,15 +116,21 @@ function App() {
             </Tabs.List>
             
             <Tabs.Content value="draft" className="flex-1 overflow-y-auto subtle-scrollbar p-4">
-              <DraftBoard />
+              <Suspense fallback={<div className="flex items-center justify-center h-full text-white">Loading Draft Board...</div>}>
+                <DraftBoard />
+              </Suspense>
             </Tabs.Content>
             
             <Tabs.Content value="players" className="flex-1 overflow-hidden p-4 flex flex-col">
-              <PlayerList />
+              <Suspense fallback={<div className="flex items-center justify-center h-full text-white">Loading Player Rankings...</div>}>
+                <PlayerList />
+              </Suspense>
             </Tabs.Content>
             
             <Tabs.Content value="rosters" className="flex-1 overflow-y-auto subtle-scrollbar p-4">
-              <RosterView />
+              <Suspense fallback={<div className="flex items-center justify-center h-full text-white">Loading Rosters...</div>}>
+                <RosterView />
+              </Suspense>
             </Tabs.Content>
           </Tabs.Root>
         </div>

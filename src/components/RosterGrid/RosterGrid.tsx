@@ -1,10 +1,8 @@
 import { useDraftStore } from '../../store';
-import type { Player, Position } from '../../types';
+import type { Position } from '../../types';
 
 export function RosterGrid() {
   const { leagueSize, getTeamRoster } = useDraftStore();
-  
-  const positions: Position[] = ['QB', 'RB', 'WR', 'TE'];
   
   const getPositionColor = (position: Position) => {
     switch (position) {
